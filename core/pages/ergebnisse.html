@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gleispreis | Suchergebnisse</title>
+    <meta
+      name="description"
+      content="Ergebnisseite fuer den statischen Gleispreis-Prototyp mit Preisvergleich, Filtern, Sortierung und Kalenderleiste."
+    />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23071824'/%3E%3Cpath d='M18 18h17c9.4 0 15 5.8 15 14.1C50 41.1 43.6 46 34.7 46H18V18Zm11.1 21.5c6.6 0 10.1-2.6 10.1-7.3 0-4.4-3.1-7.1-8.4-7.1h-2.9v14.4h1.2Z' fill='%23ffffff'/%3E%3C/svg%3E" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="../js/tailwind-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="../styles/global.css" />
+    <script defer src="../js/alpine-data.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script defer src="../components/site-header.js"></script>
+    <script defer src="../components/site-footer.js"></script>
+    <script defer src="../components/train-search-panel.js"></script>
+    <script defer src="../js/main.js"></script>
+  </head>
+  <body class="font-body text-night antialiased">
+    <div class="page-mesh"></div>
+    <div class="route-lines"></div>
+
+    <div class="relative px-3 py-4 sm:px-4 lg:px-6" x-data="trainResultsPage">
+      <site-header data-root="../.." data-page="results"></site-header>
+
+      <main class="mx-auto flex max-w-7xl flex-col gap-4 pt-4 sm:gap-5">
+        <section id="suchleiste" class="sticky top-3 z-30">
+          <div class="sticky-shell rounded-[2rem] bg-white/45 p-2 shadow-float">
+            <train-search-panel
+              data-root="../.."
+              data-variant="compact"
+              data-results-href="./ergebnisse.html"
+            ></train-search-panel>
+          </div>
+        </section>
+
+        <section data-reveal class="grid gap-4 lg:grid-cols-[1.04fr_0.96fr]">
+          <article class="rounded-[2rem] bg-panel-night p-6 text-white shadow-shell sm:p-8">
+            <p class="text-[11px] font-extrabold uppercase tracking-[0.32em] text-sky/80">
+              Suchergebnis
+            </p>
+            <h1 class="mt-3 font-display text-4xl leading-none tracking-[-0.05em] text-balance sm:text-5xl" x-text="routeLabel()"></h1>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-white/74 sm:text-base" x-text="routeSubline()"></p>
+
+            <div class="mt-6 flex flex-wrap gap-3">
+              <span class="rounded-full border border-white/12 bg-white/10 px-4 py-3 text-sm font-semibold text-white/86" x-text="tripDescriptor()"></span>
+              <span class="rounded-full border border-white/12 bg-white/10 px-4 py-3 text-sm font-semibold text-white/86">
+                Sortierung: <span x-text="sortOptions.find((item) => item.key === form.sort)?.label || 'Preis'"></span>
+              </span>
+            </div>
+          </article>
+
+          <article class="glass-panel rounded-[2rem] border border-white/60 p-6 shadow-float sm:p-8">
+            <p class="text-[11px] font-extrabold uppercase tracking-[0.32em] text-slate">
+              Preis-Insight
+            </p>
+            <h2 class="mt-3 font-display text-4xl leading-none tracking-[-0.05em] text-night sm:text-5xl">
+              <span x-text="bestDay() ? formatPrice(bestDay().price) : 'Keine Daten'"></span>
+            </h2>
+            <p class="mt-3 text-sm leading-7 text-slate">
+              Bester Kalendertag:
+              <span class="font-bold text-night" x-text="bestDay() ? bestDay().longLabel : 'Nicht verfuegbar'"></span>
+            </p>
+            <p class="mt-4 text-sm leading-7 text-slate" x-text="routeConfig() ? routeConfig().insight : 'Nutze alternative Strecken oder pruefe andere Filter.'"></p>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-[1.3rem] bg-night px-4 py-4 text-white">
+                <span class="block text-[11px] font-extrabold uppercase tracking-[0.25em] text-sky/80">Anbieter-Mix</span>
+                <strong class="mt-2 block text-2xl font-display tracking-[-0.04em]" x-text="providerMix().length"></strong>
+                <span class="mt-2 block text-sm text-white/72">sichtbar im aktuellen Ergebnis</span>
+              </div>
+              <div class="rounded-[1.3rem] bg-signal/20 px-4 py-4 text-night">
+                <span class="block text-[11px] font-extrabold uppercase tracking-[0.25em] text-slate">Preisvorteil</span>
+                <strong class="mt-2 block text-2xl font-display tracking-[-0.04em]" x-text="savingsHeadline()"></strong>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div class="min-w-0 grid gap-4">
+            <section data-reveal class="grid gap-4 md:grid-cols-3">
+              <template x-for="card in highlightCards()" :key="card.label">
+                <article data-stagger-item class="rounded-[1.6rem] border border-white/60 bg-white/80 p-5 shadow-sm">
+                  <span class="inline-flex rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.22em]" :class="card.accent" x-text="card.label"></span>
+                  <p class="mt-4 font-display text-4xl leading-none tracking-[-0.05em] text-night" x-text="card.price"></p>
+                  <p class="mt-3 text-sm font-semibold text-night" x-text="card.meta"></p>
+                  <p class="mt-2 text-sm leading-7 text-slate" x-text="card.foot"></p>
+                </article>
+              </template>
+            </section>
+
+            <section data-reveal class="glass-panel rounded-[1.8rem] border border-white/60 p-4 shadow-float sm:p-5">
+              <div class="flex flex-col gap-4">
+                <div class="horizontal-scroll -mx-1 overflow-x-auto px-1">
+                  <div class="flex min-w-max gap-3">
+                    <template x-for="filter in filters" :key="filter.key">
+                      <button
+                        type="button"
+                        @click="toggleFilter(filter.key)"
+                        class="rounded-full px-4 py-3 text-sm font-bold transition"
+                        :class="activeFilters[filter.key] ? 'bg-night text-white shadow-float' : 'border border-night/10 bg-white text-night'"
+                        x-text="filter.label"
+                      ></button>
+                    </template>
+                  </div>
+                </div>
+
+                <div class="horizontal-scroll -mx-1 overflow-x-auto px-1">
+                  <div class="flex min-w-max gap-3">
+                    <template x-for="item in sortOptions" :key="item.key">
+                      <button
+                        type="button"
+                        @click="setSort(item.key)"
+                        class="rounded-full px-4 py-2 text-sm font-bold transition"
+                        :class="form.sort === item.key ? 'bg-coral text-white shadow-float' : 'border border-night/10 bg-white text-night'"
+                        x-text="item.label"
+                      ></button>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section data-reveal class="rounded-[1.8rem] border border-white/60 bg-white/72 p-4 shadow-float sm:p-5">
+              <div class="flex items-end justify-between gap-4">
+                <div>
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate">
+                    Preis-Kalender
+                  </p>
+                  <h2 class="mt-2 font-display text-3xl leading-none tracking-[-0.04em] text-night sm:text-4xl">
+                    Plus/minus drei Tage rund um die Auswahl.
+                  </h2>
+                </div>
+                <p class="hidden max-w-sm text-sm leading-7 text-slate md:block">
+                  Ein Klick auf den Kalendertag aktualisiert den Hinfahrt-Tag und
+                  sortiert die Ergebnisliste neu.
+                </p>
+              </div>
+
+              <div class="horizontal-scroll mt-6 overflow-x-auto">
+                <div class="grid min-w-[46rem] grid-cols-7 gap-3 lg:min-w-0">
+                  <template x-for="day in calendarDays()" :key="day.date">
+                    <button
+                      type="button"
+                      @click="setActiveDate(day.date)"
+                      class="calendar-chip-active rounded-[1.35rem] border px-4 py-4 text-left transition hover:-translate-y-0.5"
+                      :class="day.active ? 'border-coral bg-coral text-white' : 'border-night/8 bg-cloud text-night'"
+                    >
+                      <p class="text-[11px] font-extrabold uppercase tracking-[0.22em]" :class="day.active ? 'text-white/72' : 'text-slate'" x-text="day.label"></p>
+                      <p class="mt-3 font-display text-2xl tracking-[-0.04em]" x-text="formatPrice(day.price)"></p>
+                      <div class="mt-4 rounded-full bg-white/20" :class="day.active ? 'bg-white/20' : 'bg-night/6'">
+                        <div class="rounded-full bg-current/80" :style="'height: ' + day.barHeight + 'px; width: 100%; opacity: 0.22;'"></div>
+                      </div>
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </section>
+
+            <section data-reveal>
+              <template x-if="filteredOffers().length > 0">
+                <div class="grid gap-4">
+                  <template x-for="offer in filteredOffers()" :key="offer.id + activeDate + form.sort">
+                    <article data-stagger-item class="result-card rounded-[1.8rem] border border-white/60 bg-white/84 p-5 shadow-sm sm:p-6">
+                      <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                        <div class="grid gap-5 lg:grid-cols-[1.1fr_1fr_0.8fr] lg:items-center">
+                          <div>
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="rounded-full bg-night px-3 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-white" x-text="offer.provider"></span>
+                              <span class="rounded-full bg-signal/18 px-3 py-2 text-[11px] font-bold uppercase tracking-[0.22em] text-night" x-text="offer.badge"></span>
+                            </div>
+                            <h3 class="mt-4 font-display text-3xl leading-none tracking-[-0.04em] text-night" x-text="offer.operator"></h3>
+                            <p class="mt-2 text-sm leading-7 text-slate" x-text="offer.ticketType + ' · ' + offer.dateLabel"></p>
+                          </div>
+
+                          <div class="grid grid-cols-3 gap-4">
+                            <div>
+                              <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate">Abfahrt</p>
+                              <strong class="mt-2 block text-2xl font-display tracking-[-0.04em] text-night" x-text="offer.departure"></strong>
+                              <span class="mt-2 block text-sm text-slate" x-text="form.from"></span>
+                            </div>
+                            <div>
+                              <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate">Dauer</p>
+                              <strong class="mt-2 block text-2xl font-display tracking-[-0.04em] text-night" x-text="offer.durationLabel"></strong>
+                              <span class="mt-2 block text-sm text-slate" x-text="offer.transfers === 0 ? 'Direkt' : offer.transfers + ' Umstieg'"></span>
+                            </div>
+                            <div>
+                              <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate">Ankunft</p>
+                              <strong class="mt-2 block text-2xl font-display tracking-[-0.04em] text-night" x-text="offer.arrival"></strong>
+                              <span class="mt-2 block text-sm text-slate" x-text="form.to"></span>
+                            </div>
+                          </div>
+
+                          <div class="flex flex-wrap gap-2">
+                            <template x-for="tag in offer.comfortTags" :key="offer.id + tag">
+                              <span class="rounded-full border border-night/8 bg-cloud px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-night" x-text="tag"></span>
+                            </template>
+                          </div>
+                        </div>
+
+                        <div class="min-w-[13rem] rounded-[1.4rem] bg-cloud px-4 py-4">
+                          <p class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate">Angebot</p>
+                          <div class="mt-3 flex items-end gap-3">
+                            <strong class="font-display text-4xl leading-none tracking-[-0.05em] text-night" x-text="formatPrice(offer.price)"></strong>
+                            <span class="text-sm font-semibold text-slate line-through" x-text="formatPrice(offer.originalPrice)"></span>
+                          </div>
+                          <p class="mt-3 text-sm leading-7 text-slate">
+                            Spart <span class="font-bold text-night" x-text="formatPrice(offer.savings)"></span> gegenueber dem hoechsten Mock-Wert.
+                          </p>
+                          <button
+                            type="button"
+                            @click="openOfferHint(offer)"
+                            class="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-coral px-5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-deep"
+                          >Zum Angebot</button>
+                        </div>
+                      </div>
+                    </article>
+                  </template>
+                </div>
+              </template>
+
+              <template x-if="filteredOffers().length === 0">
+                <div class="rounded-[1.8rem] border border-dashed border-night/18 bg-white/78 p-6 shadow-sm sm:p-8">
+                  <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate">
+                    Keine exakte Verbindung
+                  </p>
+                  <h2 class="mt-3 max-w-[12ch] font-display text-4xl leading-none tracking-[-0.05em] text-night">
+                    Die aktuellen Filter lassen gerade keinen Mock-Treffer uebrig.
+                  </h2>
+                  <p class="mt-4 max-w-2xl text-sm leading-8 text-slate">
+                    Probiere einen Nachbartag im Preis-Kalender, reduziere
+                    Filter oder springe auf eine alternative Strecke aus dem
+                    Netzwerk rund um deine Suche.
+                  </p>
+
+                  <div class="mt-6 flex flex-wrap gap-3">
+                    <template x-for="day in calendarDays()" :key="day.date + '-fallback'">
+                      <button
+                        type="button"
+                        @click="setActiveDate(day.date)"
+                        class="rounded-full border border-night/10 bg-white px-4 py-3 text-sm font-bold text-night transition hover:-translate-y-0.5"
+                      >
+                        <span x-text="day.label + ' · ' + formatPrice(day.price)"></span>
+                      </button>
+                    </template>
+                  </div>
+
+                  <div class="mt-6 grid gap-3 md:grid-cols-3">
+                    <template x-for="route in alternativeRoutes()" :key="route.key + '-alt'">
+                      <a
+                        :href="'./ergebnisse.html?from=' + encodeURIComponent(route.from) + '&to=' + encodeURIComponent(route.to) + '&tripType=oneway&outbound=' + activeDate + '&return=&passengers=' + encodeURIComponent(form.passengers) + '&travelClass=' + encodeURIComponent(form.travelClass) + '&sort=price'"
+                        class="rounded-[1.3rem] border border-night/8 bg-cloud px-4 py-4 transition hover:-translate-y-0.5"
+                      >
+                        <span class="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate">Alternative</span>
+                        <strong class="mt-2 block font-display text-2xl tracking-[-0.04em] text-night" x-text="route.from + ' nach ' + route.to"></strong>
+                        <p class="mt-2 text-sm leading-7 text-slate" x-text="route.teaser"></p>
+                      </a>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </section>
+          </div>
+
+          <aside data-reveal class="grid gap-4 self-start lg:sticky lg:top-32">
+            <article class="glass-panel rounded-[1.8rem] border border-white/60 p-5 shadow-float">
+              <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate">
+                Zusammenfassung
+              </p>
+              <h2 class="mt-3 font-display text-3xl leading-none tracking-[-0.04em] text-night">
+                <span x-text="filteredOffers().length"></span> Angebote sichtbar
+              </h2>
+              <p class="mt-4 text-sm leading-7 text-slate" x-text="routeConfig() ? routeConfig().teaser : 'Alternative Strecken empfohlen.'"></p>
+              <div class="mt-5 flex flex-wrap gap-2">
+                <template x-for="provider in providerMix()" :key="provider + '-mix'">
+                  <span class="rounded-full border border-night/8 bg-white px-3 py-2 text-xs font-bold uppercase tracking-[0.18em] text-night" x-text="provider"></span>
+                </template>
+              </div>
+            </article>
+
+            <article class="rounded-[1.8rem] bg-panel-night p-5 text-white shadow-shell">
+              <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-sky/80">
+                Rueckfahrt
+              </p>
+              <template x-if="form.tripType === 'return' && form.return">
+                <div>
+                  <h2 class="mt-3 font-display text-3xl leading-none tracking-[-0.04em]">
+                    Rueckfahrt ist im Summary sichtbar.
+                  </h2>
+                  <p class="mt-4 text-sm leading-7 text-white/72">
+                    Rueckreise am
+                    <span class="font-bold text-white" x-text="formatDate(form.return, { day: '2-digit', month: 'long' })"></span>.
+                    Die primare Liste bleibt bewusst auf den Outbound fokussiert.
+                  </p>
+                </div>
+              </template>
+              <template x-if="form.tripType !== 'return' || !form.return">
+                <div>
+                  <h2 class="mt-3 font-display text-3xl leading-none tracking-[-0.04em]">
+                    Fokus auf die Hinfahrt.
+                  </h2>
+                  <p class="mt-4 text-sm leading-7 text-white/72">
+                    Fuer v1 bleibt die Ergebnisliste outbound-zentriert. Eine
+                    Rueckfahrt wird erst bei aktiver Hin-und-zurueck-Suche im
+                    Summary hervorgehoben.
+                  </p>
+                </div>
+              </template>
+            </article>
+
+            <article class="rounded-[1.8rem] border border-white/60 bg-white/82 p-5 shadow-sm">
+              <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate">
+                Preisalarm
+              </p>
+              <h2 class="mt-3 font-display text-3xl leading-none tracking-[-0.04em] text-night">
+                Lass dich ueber Preisbewegungen informieren.
+              </h2>
+              <p class="mt-4 text-sm leading-7 text-slate">
+                Im Prototyp bleibt dieser CTA visuell. Er zeigt, wo ein Alarm-
+                Produkt spaeter sinnvoll eingebettet werden kann.
+              </p>
+              <button
+                type="button"
+                @click="openPriceAlert()"
+                class="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-full bg-coral px-5 text-sm font-bold text-white transition hover:-translate-y-0.5 hover:bg-coral-deep"
+              >Preisalarm aktivieren</button>
+            </article>
+          </aside>
+        </section>
+      </main>
+
+      <site-footer data-root="../.."></site-footer>
+
+      <div
+        x-show="modal.open"
+        x-cloak
+        x-transition.opacity.duration.180ms
+        class="fixed inset-0 z-50 grid place-items-center bg-night/45 px-4"
+      >
+        <div class="w-full max-w-lg rounded-[1.8rem] bg-white p-6 shadow-shell">
+          <p class="text-[11px] font-extrabold uppercase tracking-[0.28em] text-slate">
+            Mock-Hinweis
+          </p>
+          <h2 class="mt-3 font-display text-3xl leading-none tracking-[-0.04em] text-night" x-text="modal.title"></h2>
+          <p class="mt-4 text-sm leading-8 text-slate" x-text="modal.copy"></p>
+          <div class="mt-6 flex justify-end">
+            <button
+              type="button"
+              @click="closeModal()"
+              class="inline-flex min-h-11 items-center justify-center rounded-full bg-night px-5 text-sm font-bold text-white"
+            >Schliessen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
